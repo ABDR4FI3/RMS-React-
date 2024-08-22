@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Supplier } from "../../../../types/Supplier";
-import useFetchCategories from "../../../../Hooks/useFetchCategories";
+import useFetchCategories, { getCategoryById } from "../../../../Hooks/useFetchCategories";
 import { InventoryType } from "../../../../types/Inventory";
 import { useSuppliers } from "../../../../Hooks/useSupplier";
 
@@ -21,7 +21,7 @@ const InventoryForm: React.FC<InventoryFormProps> = ({
     quantity: 0,
     price: 0,
     minQuantity: 0,
-    category: 0,
+    category: { id: 0, name: "" },
     suppliers: [],
   });
 
@@ -48,40 +48,41 @@ const InventoryForm: React.FC<InventoryFormProps> = ({
     setSupplierOptions(suppliers);
   }, [suppliers]);
 
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value, type } = e.target;
-    const inputElement = e.target as HTMLInputElement;
+const handleChange = (
+  e: React.ChangeEvent<
+    HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+  >
+) => {
+  const { name, value, type } = e.target;
+  const inputElement = e.target as HTMLInputElement;
 
-    if (name === "suppliers") {
-      const checked = inputElement.checked; // Narrow down the type here
-      const supplierId = parseInt(value);
-      setFormState((prevState) => ({
-        ...prevState,
-        suppliers: checked
-          ? [
-              ...prevState.suppliers,
-              suppliers.find((s) => s.id === supplierId) as Supplier,
-            ]
-          : prevState.suppliers.filter(
-              (supplier) => supplier.id !== supplierId
-            ),
-      }));
-    } else if (name === "category") {
-      setFormState((prevState) => ({
-        ...prevState,
-        [name]: parseInt(value),
-      }));
-    } else {
-      setFormState((prevState) => ({
-        ...prevState,
-        [name]: type === "number" ? parseFloat(value) : value,
-      }));
-    }
-  };
+  if (name === "suppliers") {
+    const checked = inputElement.checked;
+    const supplierId = parseInt(value);
+    setFormState((prevState) => ({
+      ...prevState,
+      suppliers: checked
+        ? [
+            ...prevState.suppliers,
+            suppliers.find((s) => s.id === supplierId) as Supplier,
+          ]
+        : prevState.suppliers.filter((supplier) => supplier.id !== supplierId),
+    }));
+  } else if (name === "category") {
+    const categoryId = parseInt(value);
+    const category = getCategoryById(categories,categoryId);
+    setFormState((prevState) => ({
+      ...prevState,
+      category: category ?? prevState.category, // Ensure category is a valid Category
+    }));
+  } else {
+    setFormState((prevState) => ({
+      ...prevState,
+      [name]: type === "number" ? parseFloat(value) : value,
+    }));
+  }
+};
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,17 +161,14 @@ const InventoryForm: React.FC<InventoryFormProps> = ({
               </label>
               <select
                 name="category"
-                value={formState.category}
+                value={formState.category?.id || ""}
                 onChange={handleChange}
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 required
               >
-                <option value="" disabled>
-                  Select a category
-                </option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
                   </option>
                 ))}
               </select>

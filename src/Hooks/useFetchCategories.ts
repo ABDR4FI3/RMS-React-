@@ -26,4 +26,12 @@ const useFetchCategories = () => {
   return { categories, loading, error };
 };
 
+
 export default useFetchCategories;
+
+export const getCategoryById = (
+  categories: Category[],
+  id: number
+): Category | undefined => {
+  return categories.find((category) => category.id === id);
+};
