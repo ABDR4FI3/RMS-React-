@@ -1,0 +1,11 @@
+.Warning{
+    background-color: rgb(255, 129, 129);
+    color: black;
+    font-weight: 700;
+}
+.Normal{
+ background-color: white;   
+}
+.StatsCards{
+    max-height: 900px;
+}
